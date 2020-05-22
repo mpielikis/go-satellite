@@ -9,7 +9,7 @@ type Satellite struct {
 
 	Error      int64
 	ErrorStr   string
-	whichconst GravConst
+	Whichconst GravConst
 
 	epochyr     int64
 	epochdays   float64

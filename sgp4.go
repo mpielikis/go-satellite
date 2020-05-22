@@ -14,10 +14,10 @@ func sgp4init(opsmode *string, epoch float64, satrec *Satellite) (position, velo
 	satrec.method = "n"
 	satrec.operationmode = "i"
 
-	radiusearthkm := satrec.whichconst.radiusearthkm
-	j2 := satrec.whichconst.j2
-	j4 := satrec.whichconst.j4
-	j3oj2 := satrec.whichconst.j3oj2
+	radiusearthkm := satrec.Whichconst.radiusearthkm
+	j2 := satrec.Whichconst.j2
+	j4 := satrec.Whichconst.j4
+	j3oj2 := satrec.Whichconst.j3oj2
 
 	ss := 78.0/radiusearthkm + 1.0
 	qzms2ttemp := (120.0 - 78.0) / radiusearthkm
@@ -27,7 +27,7 @@ func sgp4init(opsmode *string, epoch float64, satrec *Satellite) (position, velo
 	satrec.init = "y"
 	satrec.t = 0.0
 
-	var _, no, ao, con41, con42, cosio, cosio2, eccsq, omeosq, posq, rp, rteosq, sinio, gsto = initl(satrec.satnum, satrec.whichconst, satrec.ecco, epoch, satrec.inclo, satrec.no, satrec.method, satrec.operationmode)
+	var _, no, ao, con41, con42, cosio, cosio2, eccsq, omeosq, posq, rp, rteosq, sinio, gsto = initl(satrec.satnum, satrec.Whichconst, satrec.ecco, epoch, satrec.inclo, satrec.no, satrec.method, satrec.operationmode)
 
 	satrec.no = no
 	satrec.con41 = con41
@@ -192,7 +192,7 @@ func sgp4init(opsmode *string, epoch float64, satrec *Satellite) (position, velo
 			nodem = 0.0
 			mm = 0.0
 
-			dsinitResults := dsinit(satrec.whichconst, cosim, emsq, satrec.argpo, s1, s2, s3, s4, s5, sinim, ss1, ss2, ss3, ss4, ss5, sz1, sz3, sz11, sz13, sz21, sz23, sz31, sz33, satrec.t, tc, satrec.gsto, satrec.mo, satrec.mdot, satrec.no, satrec.nodeo, satrec.nodedot, xpidot, z1, z3, z11, z13, z21, z23, z31, z33, satrec.ecco, eccsq, em, argpm, inclm, mm, nm, nodem, satrec.irez, satrec.atime, satrec.d2201, satrec.d2211, satrec.d3210, satrec.d3222, satrec.d4410, satrec.d4422, satrec.d5220, satrec.d5232, satrec.d5421, satrec.d5433, satrec.dedt, satrec.didt, satrec.dmdt, satrec.dnodt, satrec.domdt, satrec.del1, satrec.del2, satrec.del3, satrec.xfact, satrec.xlamo, satrec.xli, satrec.xni)
+			dsinitResults := dsinit(satrec.Whichconst, cosim, emsq, satrec.argpo, s1, s2, s3, s4, s5, sinim, ss1, ss2, ss3, ss4, ss5, sz1, sz3, sz11, sz13, sz21, sz23, sz31, sz33, satrec.t, tc, satrec.gsto, satrec.mo, satrec.mdot, satrec.no, satrec.nodeo, satrec.nodedot, xpidot, z1, z3, z11, z13, z21, z23, z31, z33, satrec.ecco, eccsq, em, argpm, inclm, mm, nm, nodem, satrec.irez, satrec.atime, satrec.d2201, satrec.d2211, satrec.d3210, satrec.d3222, satrec.d4410, satrec.d4422, satrec.d5220, satrec.d5232, satrec.d5421, satrec.d5433, satrec.dedt, satrec.didt, satrec.dmdt, satrec.dnodt, satrec.domdt, satrec.del1, satrec.del2, satrec.del3, satrec.xfact, satrec.xlamo, satrec.xli, satrec.xni)
 
 			em = dsinitResults.em
 			argpm = dsinitResults.argpm
@@ -307,10 +307,10 @@ func sgp4(satrec *Satellite, tsince float64) (position, velocity Vector3) {
 	temp4 := 1.5e-12
 	x2o3 := 2.0 / 3.0
 
-	radiusearthkm := satrec.whichconst.radiusearthkm
-	xke := satrec.whichconst.xke
-	j2 := satrec.whichconst.j2
-	j3oj2 := satrec.whichconst.j3oj2
+	radiusearthkm := satrec.Whichconst.radiusearthkm
+	xke := satrec.Whichconst.xke
+	j2 := satrec.Whichconst.j2
+	j3oj2 := satrec.Whichconst.j3oj2
 
 	vkmpersec := radiusearthkm * xke / 60.0
 

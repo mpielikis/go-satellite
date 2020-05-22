@@ -34,7 +34,7 @@ func ParseTLE(line1, line2, gravconst string) (sat Satellite) {
 	sat.Line2 = line2
 
 	sat.Error = 0
-	sat.whichconst = getGravConst(gravconst)
+	sat.Whichconst = getGravConst(gravconst)
 
 	// LINE 1 BEGIN
 	sat.satnum = parseInt(strings.TrimSpace(line1[2:7]))

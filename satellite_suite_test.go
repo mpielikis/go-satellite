@@ -39,7 +39,7 @@ var _ = Describe("go-satellite", func() {
 				Longitude: DEG2RAD * 12.6500}
 			alt := 0.005
 
-			angles := ECIToLookAngles(pos, latLong, alt, jDay+jF, sat.whichconst)
+			angles := ECIToLookAngles(pos, latLong, alt, jDay+jF, sat.Whichconst)
 
 			Expect(angles.El * RAD2DEG).To(Equal(42.06164214709452))
 			Expect(angles.Az * RAD2DEG).To(Equal(181.2902281625632))
