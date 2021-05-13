@@ -1,7 +1,7 @@
 package satellite
 
 import (
-	"log"
+	"fmt"
 	"math"
 )
 
@@ -11,7 +11,7 @@ type GravConst struct {
 }
 
 // Returns a GravConst with correct information on requested model provided through the name parameter
-func getGravConst(name string) (grav GravConst) {
+func getGravConst(name string) (grav GravConst, err error) {
 	switch name {
 	case "wgs72old":
 		grav.mu = 398600.79964
@@ -44,7 +44,7 @@ func getGravConst(name string) (grav GravConst) {
 		grav.j3oj2 = grav.j3 / grav.j2
 		grav.f = 1 / 298.257223563
 	default:
-		log.Fatal(name, "is not a valid gravity model")
+		err = fmt.Errorf("%s is not a valid gravity model", name)
 	}
 
 	return

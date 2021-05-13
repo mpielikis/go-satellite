@@ -20,7 +20,7 @@ type LatLong struct {
 
 // Holds latitude and Longitude in either degrees or radians
 type LatLongAlt struct {
-	LatLog     LatLong
+	LatLong    LatLong
 	AltitudeKm float64
 }
 
@@ -44,7 +44,11 @@ func ParseTLE(line1, line2, gravconst string) (sat Satellite, err error) {
 	sat.Line2 = line2
 
 	sat.Error = 0
-	sat.Whichconst = getGravConst(gravconst)
+	sat.Whichconst, err = getGravConst(gravconst)
+	if err != nil {
+		err = fmt.Errorf("Error on getting gravconst: %v", err)
+		return
+	}
 
 	// LINE 1 BEGIN
 	sat.satnum, err = parseInt(strings.TrimSpace(line1[2:7]))
@@ -155,7 +159,7 @@ func NewSatFromTLE(line1, line2 string, gravconst string) (Satellite, error) {
 
 func NewLatLongAlt(latitudeDeg, longitudeDeg, altitudeKm float64) LatLongAlt {
 	return LatLongAlt{
-		LatLog: LatLong{
+		LatLong: LatLong{
 			LatitudeRad:  DEG2RAD * latitudeDeg,
 			LongitudeRad: DEG2RAD * longitudeDeg},
 		AltitudeKm: altitudeKm,

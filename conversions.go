@@ -1,8 +1,9 @@
 package satellite
 
 import (
-	"log"
+	"errors"
 	"math"
+	"time"
 )
 
 // this procedure converts the day of the year, epochDays, to the equivalent month day, hour, minute and second.
@@ -35,6 +36,12 @@ func days2mdhms(year int64, epochDays float64) (mon, day, hr, min, sec float64) 
 	sec = (temp - min) * 60.0
 
 	return
+}
+
+func NewJDayFromTime(t time.Time) JDay {
+	year, month, day := t.Date()
+	hour, min, sec := t.Clock()
+	return NewJDay(year, int(month), day, hour, min, float64(sec))
 }
 
 // Calc julian date given year, month, day, hour, minute and second
@@ -98,7 +105,7 @@ func ECIToLLA(eciCoords Vector3, gmst float64) (altitude, velocity float64, ret 
 }
 
 // Convert LatLong in radians to LatLong in degrees
-func LatLongDeg(rad LatLong) (deg LatLong) {
+func LatLongDeg(rad LatLong) (deg LatLong, err error) {
 	deg.LongitudeRad = math.Mod(rad.LongitudeRad/math.Pi*180, 360)
 	if deg.LongitudeRad > 180 {
 		deg.LongitudeRad = 360 - deg.LongitudeRad
@@ -107,7 +114,8 @@ func LatLongDeg(rad LatLong) (deg LatLong) {
 	}
 
 	if rad.LatitudeRad < (-math.Pi/2) || rad.LatitudeRad > math.Pi/2 {
-		log.Fatal("Latitude not within bounds -pi/2 to +pi/2")
+		err = errors.New("Latitude not within bounds -pi/2 to +pi/2")
+		return
 	}
 	deg.LatitudeRad = (rad.LatitudeRad / math.Pi * 180)
 	return
@@ -128,9 +136,9 @@ func ThetaG_JD(jday float64) (ret float64) {
 // Convert latitude, longitude and altitude into equivalent Earth Centered Intertial coordinates
 // Reference: The 1992 Astronomical Almanac, page K11.
 func LLAToECI(obsCoords LatLongAlt, jday float64, gravConst GravConst) (eciObs Vector3) {
-	theta := math.Mod(ThetaG_JD(jday)+obsCoords.LatLog.LongitudeRad, TWOPI)
-	latSin := math.Sin(obsCoords.LatLog.LatitudeRad)
-	latCos := math.Cos(obsCoords.LatLog.LatitudeRad)
+	theta := math.Mod(ThetaG_JD(jday)+obsCoords.LatLong.LongitudeRad, TWOPI)
+	latSin := math.Sin(obsCoords.LatLong.LatitudeRad)
+	latCos := math.Cos(obsCoords.LatLong.LatitudeRad)
 	c := 1 / math.Sqrt(1+gravConst.f*(gravConst.f-2)*latSin*latSin)
 	sq := c * (1 - gravConst.f) * (1 - gravConst.f)
 	achcp := (gravConst.radiusearthkm*c + obsCoords.AltitudeKm) * latCos
@@ -154,15 +162,15 @@ func ECIToECEF(eciCoords Vector3, gmst float64) (ecfCoords Vector3) {
 // obsAlt in km
 // Reference: http://celestrak.com/columns/v02n02/
 func ECIToLookAngles(eciSat Vector3, obsCoords LatLongAlt, jday float64, gravConst GravConst) (lookAngles LookAngles) {
-	theta := math.Mod(ThetaG_JD(jday)+obsCoords.LatLog.LongitudeRad, 2*math.Pi)
+	theta := math.Mod(ThetaG_JD(jday)+obsCoords.LatLong.LongitudeRad, 2*math.Pi)
 	obsPos := LLAToECI(obsCoords, jday, gravConst)
 
 	rx := eciSat.X - obsPos.X
 	ry := eciSat.Y - obsPos.Y
 	rz := eciSat.Z - obsPos.Z
 
-	latSin := math.Sin(obsCoords.LatLog.LatitudeRad)
-	latCos := math.Cos(obsCoords.LatLog.LatitudeRad)
+	latSin := math.Sin(obsCoords.LatLong.LatitudeRad)
+	latCos := math.Cos(obsCoords.LatLong.LatitudeRad)
 	thetaSin := math.Sin(theta)
 	thetaCos := math.Cos(theta)
 
