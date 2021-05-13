@@ -15,7 +15,13 @@ const XPDOTP float64 = 1440.0 / (2.0 * math.Pi)
 
 // Holds latitude and Longitude in either degrees or radians
 type LatLong struct {
-	Latitude, Longitude float64
+	LatitudeRad, LongitudeRad float64
+}
+
+// Holds latitude and Longitude in either degrees or radians
+type LatLongAlt struct {
+	LatLog     LatLong
+	AltitudeKm float64
 }
 
 // Holds X, Y, Z position
@@ -26,6 +32,10 @@ type Vector3 struct {
 // Holds an azimuth, elevation and range
 type LookAngles struct {
 	Az, El, Rg float64
+}
+
+type JDay struct {
+	Day, Fraction float64
 }
 
 // Parses a two line element dataset into a Satellite struct
@@ -108,7 +118,7 @@ func ParseTLE(line1, line2, gravconst string) (sat Satellite, err error) {
 }
 
 // Converts a two line element data set into a Satellite struct and runs sgp4init
-func TLEToSat(line1, line2 string, gravconst string) (Satellite, error) {
+func NewSatFromTLE(line1, line2 string, gravconst string) (Satellite, error) {
 	//sat := Satellite{Line1: line1, Line2: line2}
 	sat, err := ParseTLE(line1, line2, gravconst)
 
@@ -136,11 +146,32 @@ func TLEToSat(line1, line2 string, gravconst string) (Satellite, error) {
 
 	mon, day, hr, min, sec := days2mdhms(year, sat.epochdays)
 
-	sat.jdsatepoch, sat.jdsatepochF = JDay(int(year), int(mon), int(day), int(hr), int(min), sec)
+	sat.jdsatepoch = NewJDay(int(year), int(mon), int(day), int(hr), int(min), sec)
 
-	sgp4init(&opsmode, sat.jdsatepoch+sat.jdsatepochF-2433281.5, &sat)
+	sgp4init(&opsmode, sat.jdsatepoch.Subtract(2433281.5), &sat)
 
 	return sat, nil
+}
+
+func NewLatLongAlt(latitudeDeg, longitudeDeg, altitudeKm float64) LatLongAlt {
+	return LatLongAlt{
+		LatLog: LatLong{
+			LatitudeRad:  DEG2RAD * latitudeDeg,
+			LongitudeRad: DEG2RAD * longitudeDeg},
+		AltitudeKm: altitudeKm,
+	}
+}
+
+func (jd JDay) Subtract(time float64) float64 {
+	return jd.Day + jd.Fraction - time
+}
+
+func (jd JDay) SubtractDay(j JDay) float64 {
+	return (jd.Day-j.Day)*1440 + (jd.Fraction-j.Fraction)*1440
+}
+
+func (jd JDay) Single() float64 {
+	return jd.Day + jd.Fraction
 }
 
 // Parses a string into a float64 value.

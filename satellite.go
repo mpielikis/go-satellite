@@ -11,10 +11,9 @@ type Satellite struct {
 	ErrorStr   string
 	Whichconst GravConst
 
-	epochyr     int64
-	epochdays   float64
-	jdsatepoch  float64
-	jdsatepochF float64
+	epochyr    int64
+	epochdays  float64
+	jdsatepoch JDay
 
 	ndot  float64
 	nddot float64

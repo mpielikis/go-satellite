@@ -292,8 +292,8 @@ func initl(satn int64, grav GravConst, ecco, epoch, inclo, noIn float64, methodI
 }
 
 // Calculates position and velocity vectors for given time
-func Propagate(sat Satellite, jDay, jF float64) (position, velocity Vector3) {
-	tsince := (jDay-sat.jdsatepoch)*1440 + (jF-sat.jdsatepochF)*1440
+func (sat Satellite) Propagate(jDay JDay) (position, velocity Vector3) {
+	tsince := jDay.SubtractDay(sat.jdsatepoch)
 	return sgp4(&sat, tsince)
 }
 

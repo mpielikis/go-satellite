@@ -25,7 +25,7 @@ var _ = Describe("go-satellite", func() {
 	Describe("LookAngles", func() {
 
 		It("should return correct observer look angles for given ISS#22825 at 2020-05-23T20:23:37", func() {
-			sat, err := TLEToSat(
+			sat, err := NewSatFromTLE(
 				"1 25544U 98067A   20140.34419374 -.00000374  00000-0  13653-5 0  9990",
 				"2 25544  51.6433 131.2277 0001338 330.3524 173.1622 15.49372617227549",
 				"wgs72")
@@ -35,15 +35,12 @@ var _ = Describe("go-satellite", func() {
 			year, month, day := time.Date()
 			hour, min, sec := time.Clock()
 
-			jDay, jF := JDay(year, int(month), day, hour, min, float64(sec))
-			pos, _ := Propagate(sat, jDay, jF)
+			jDay := NewJDay(year, int(month), day, hour, min, float64(sec))
+			pos, _ := sat.Propagate(jDay)
 
-			latLong := LatLong{
-				Latitude:  DEG2RAD * 55.6167,
-				Longitude: DEG2RAD * 12.6500}
-			alt := 0.005
+			latLongAlt := NewLatLongAlt(55.6167, 12.6500, 0.005)
 
-			angles := ECIToLookAngles(pos, latLong, alt, jDay+jF, sat.Whichconst)
+			angles := ECIToLookAngles(pos, latLongAlt, jDay.Single(), sat.Whichconst)
 
 			Expect(angles.El * RAD2DEG).To(Equal(42.06164214709452))
 			Expect(angles.Az * RAD2DEG).To(Equal(181.2902281625632))
@@ -344,7 +341,7 @@ type PropagationTestCase struct {
 }
 
 func propagationTest(testCase PropagationTestCase) {
-	satrec, err := TLEToSat(testCase.line1, testCase.line2, testCase.grav)
+	satrec, err := NewSatFromTLE(testCase.line1, testCase.line2, testCase.grav)
 	Expect(err).To(BeNil())
 	lines := strings.Split(testCase.testData, "\n")
 
