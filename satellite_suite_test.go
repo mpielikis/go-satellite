@@ -25,8 +25,12 @@ var _ = Describe("go-satellite", func() {
 	Describe("LookAngles", func() {
 
 		It("should return correct observer look angles for given ISS#22825 at 2020-05-23T20:23:37", func() {
-			sat := TLEToSat("1 25544U 98067A   20140.34419374 -.00000374  00000-0  13653-5 0  9990", "2 25544  51.6433 131.2277 0001338 330.3524 173.1622 15.49372617227549", "wgs72")
+			sat, err := TLEToSat(
+				"1 25544U 98067A   20140.34419374 -.00000374  00000-0  13653-5 0  9990",
+				"2 25544  51.6433 131.2277 0001338 330.3524 173.1622 15.49372617227549",
+				"wgs72")
 
+			Expect(err).To(BeNil())
 			time := time.Date(2020, 5, 23, 20, 23, 37, 0, time.UTC)
 			year, month, day := time.Date()
 			hour, min, sec := time.Clock()
@@ -47,9 +51,45 @@ var _ = Describe("go-satellite", func() {
 	})
 
 	Describe("ParseTLE", func() {
-		It("should return correctly parsed values for given ISS#25544", func() {
-			sat := ParseTLE("1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927", "2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537", "wgs84")
+		It("should return error on invalid TLE", func() {
+			_, err := ParseTLE(
+				"1 25544U 98067A  08264.51782528 -.00002182  00000-0 -11606-4 0  2927",
+				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537",
+				"wgs84")
 
+			Expect(err).To(Not(BeNil()))
+			Expect(err.Error()).To(Equal("Error on parsing line1[20:32]: strconv.ParseFloat: parsing \"64.51782528 \": invalid syntax"))
+		})
+
+		It("should return correctly parsed values for given ISS#25544", func() {
+			sat, err := ParseTLE(
+				"1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927",
+				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537",
+				"wgs84")
+
+			Expect(err).To(BeNil())
+			Expect(sat.satnum).To(Equal(int64(25544)))
+			Expect(sat.epochyr).To(Equal(int64(8)))
+			Expect(sat.epochdays).To(Equal(264.51782528))
+			Expect(sat.ndot).To(Equal(-2.182e-05))
+			Expect(sat.nddot).To(Equal(0.0))
+			Expect(sat.bstar).To(Equal(-1.1606e-05))
+
+			Expect(sat.inclo).To(Equal(51.6416))
+			Expect(sat.nodeo).To(Equal(247.4627))
+			Expect(sat.ecco).To(Equal(0.0006703))
+			Expect(sat.argpo).To(Equal(130.536))
+			Expect(sat.mo).To(Equal(325.0288))
+			Expect(sat.no).To(Equal(15.72125391))
+		})
+
+		It("should return correctly parsed values for given object", func() {
+			sat, err := ParseTLE(
+				"1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927",
+				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537",
+				"wgs84")
+
+			Expect(err).To(BeNil())
 			Expect(sat.satnum).To(Equal(int64(25544)))
 			Expect(sat.epochyr).To(Equal(int64(8)))
 			Expect(sat.epochdays).To(Equal(264.51782528))
@@ -66,8 +106,12 @@ var _ = Describe("go-satellite", func() {
 		})
 
 		It("should return correctly parsed values for given NOAA 19#33591", func() {
-			sat := ParseTLE("1 33591U 09005A   16163.48990228  .00000077  00000-0  66998-4 0  9990", "2 33591  99.0394 120.2160 0013054 232.8317 127.1662 14.12079902378332", "wgs84")
+			sat, err := ParseTLE(
+				"1 33591U 09005A   16163.48990228  .00000077  00000-0  66998-4 0  9990",
+				"2 33591  99.0394 120.2160 0013054 232.8317 127.1662 14.12079902378332",
+				"wgs84")
 
+			Expect(err).To(BeNil())
 			Expect(sat.satnum).To(Equal(int64(33591)))
 			Expect(sat.epochyr).To(Equal(int64(16)))
 			Expect(sat.epochdays).To(Equal(163.48990228))
@@ -84,8 +128,9 @@ var _ = Describe("go-satellite", func() {
 		})
 
 		It("should return correctly parsed values for given TITAN 3C#4362", func() {
-			sat := ParseTLE("1 04632U 70093B   04031.91070959 -.00000084  00000-0  10000-3 0  9955", "2 04632  11.4628 273.1101 1450506 207.6000 143.9350  1.20231981 44145", "wgs84")
+			sat, err := ParseTLE("1 04632U 70093B   04031.91070959 -.00000084  00000-0  10000-3 0  9955", "2 04632  11.4628 273.1101 1450506 207.6000 143.9350  1.20231981 44145", "wgs84")
 
+			Expect(err).To(BeNil())
 			Expect(sat.satnum).To(Equal(int64(4632)))
 			Expect(sat.epochyr).To(Equal(int64(4)))
 			Expect(sat.epochdays).To(Equal(31.91070959))
@@ -110,7 +155,7 @@ var _ = Describe("go-satellite", func() {
 			// 	grav:  "wgs72",
 			// 	testData: ``,
 			// },
-			PropagationTestCase{
+			{
 				line1: "1 00005U 58002B   00179.78495062  .00000023  00000-0  28098-4 0  4753",
 				line2: "2 00005  34.2682 348.7242 1859667 331.7664  19.3264 10.82419157413667",
 				grav:  "wgs72",
@@ -128,7 +173,7 @@ var _ = Describe("go-satellite", func() {
 3960.00000000 -3791.44531559 -5712.95617894 -4533.48630714 6.668817493 -2.516382327 -0.082384354 2000 6 30 12:50:19.733571
 4320.00000000 -9060.47373569 4658.70952502 813.68673153 -2.232832783 -4.110453490 -3.157345433 2000 6 30 18:50:19.733571 `,
 			},
-			PropagationTestCase{
+			{
 				line1: "1 04632U 70093B   04031.91070959 -.00000084  00000-0  10000-3 0  9955",
 				line2: "2 04632  11.4628 273.1101 1450506 207.6000 143.9350  1.20231981 44145",
 				grav:  "wgs72",
@@ -138,7 +183,7 @@ var _ = Describe("go-satellite", func() {
 -4944.00000000 -22097.68730513 -31583.13829284 -4836.34329328 2.230597499 -2.166594667 0.426443070 2004 1 28 11:27:25.308611
 -4896.00000000 -15129.94694545 -36907.74526221 -3487.56256701 2.581167187 -1.524204737 0.504805763 2004 1 28 12:15:25.308600`,
 			},
-			PropagationTestCase{
+			{
 				line1: "1 06251U 62025E   06176.82412014  .00008885  00000-0  12808-3 0  3985",
 				line2: "2 06251  58.0579  54.0425 0030035 139.1568 221.1854 15.56387291  6774",
 				grav:  "wgs72",
@@ -168,7 +213,7 @@ var _ = Describe("go-satellite", func() {
 2760.00000000 4730.53958356 524.05006433 -4857.29369725 2.918056288 6.135412849 3.495115636 2006 6 27 17:46:43.980097
 2880.00000000 1159.27802897 5056.60175495 4353.49418579 -5.968060341 -2.314790406 4.230722669 2006 6 27 19:46:43.980111`,
 			},
-			PropagationTestCase{
+			{
 				line1: "1 88888U          80275.98708465  .00073094  13844-3  66816-4 0    8",
 				line2: "2 88888  72.8435 115.9689 0086731  52.6988 110.5714 16.05824518  105",
 				grav:  "wgs72",
@@ -186,7 +231,7 @@ var _ = Describe("go-satellite", func() {
 1320.00000000 -2842.06876757 2278.42343492 5472.33437150 1.691852635 -6.693216335 3.671022712
 1440.00000000 2742.55398832 -6079.67009123 -326.39012649 1.948497651 1.211072678 -7.356193131`,
 			},
-			PropagationTestCase{
+			{
 				line1: "1 04632U 70093B   04031.91070959 -.00000084  00000-0  10000-3 0  9955",
 				line2: "2 04632  11.4628 273.1101 1450506 207.6000 143.9350  1.20231981 44145",
 				grav:  "wgs72",
@@ -196,7 +241,7 @@ var _ = Describe("go-satellite", func() {
 -4944.00000000 -22097.68730513 -31583.13829284 -4836.34329328 2.230597499 -2.166594667 0.426443070
 -4896.00000000 -15129.94694545 -36907.74526221 -3487.56256701 2.581167187 -1.524204737 0.504805763`,
 			},
-			PropagationTestCase{
+			{
 				line1: "1 24208U 96044A   06177.04061740 -.00000094  00000-0  10000-3 0  1600",
 				line2: "2 24208   3.8536  80.0121 0026640 311.0977  48.3000  1.00778054 36119",
 				grav:  "wgs72",
@@ -214,7 +259,7 @@ var _ = Describe("go-satellite", func() {
 1320.00000000 25701.46068162 33089.42617648 -1308.68556638 -2.428713821 1.897381431 0.184605907
 1440.00000000 5501.08137100 41590.27784405 138.32522930 -3.050691874 0.409203052 0.207958133`,
 			},
-			PropagationTestCase{
+			{
 				line1: "1 06251U 62025E   06176.82412014  .00008885  00000-0  12808-3 0  3985",
 				line2: "2 06251  58.0579  54.0425 0030035 139.1568 221.1854 15.56387291  6774",
 				grav:  "wgs72",
@@ -244,7 +289,7 @@ var _ = Describe("go-satellite", func() {
 2760.00000000 4730.53958356 524.05006433 -4857.29369725 2.918056288 6.135412849 3.495115636
 2880.00000000 1159.27802897 5056.60175495 4353.49418579 -5.968060341 -2.314790406 4.230722669`,
 			},
-			PropagationTestCase{
+			{
 				line1: "1 23599U 95029B   06171.76535463  .00085586  12891-6  12956-2 0  2905",
 				line2: "2 23599   6.9327   0.2849 5782022 274.4436  25.2425  4.47796565123555",
 				grav:  "wgs72",
@@ -299,17 +344,26 @@ type PropagationTestCase struct {
 }
 
 func propagationTest(testCase PropagationTestCase) {
-	satrec := TLEToSat(testCase.line1, testCase.line2, testCase.grav)
+	satrec, err := TLEToSat(testCase.line1, testCase.line2, testCase.grav)
+	Expect(err).To(BeNil())
 	lines := strings.Split(testCase.testData, "\n")
+
+	pFloat := func(strIn string) float64 {
+		res, err := parseFloat(strIn)
+		if err != nil {
+			panic(err)
+		}
+		return res
+	}
 
 	for _, line := range lines {
 		Context("Satnum "+strconv.FormatInt(satrec.satnum, 10), func() {
 			theoData := strings.Split(line, " ")
 
-			theoPos := Vector3{X: parseFloat(theoData[1]), Y: parseFloat(theoData[2]), Z: parseFloat(theoData[3])}
-			theoVel := Vector3{X: parseFloat(theoData[4]), Y: parseFloat(theoData[5]), Z: parseFloat(theoData[6])}
+			theoPos := Vector3{X: pFloat(theoData[1]), Y: pFloat(theoData[2]), Z: pFloat(theoData[3])}
+			theoVel := Vector3{X: pFloat(theoData[4]), Y: pFloat(theoData[5]), Z: pFloat(theoData[6])}
 
-			expPos, expVel := sgp4(&satrec, parseFloat(theoData[0]))
+			expPos, expVel := sgp4(&satrec, pFloat(theoData[0]))
 
 			It("Should produce accurate results for time "+theoData[0], func() {
 				Expect(expPos.X).To(BeNumerically("~", theoPos.X, 0.0001))

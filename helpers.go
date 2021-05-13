@@ -1,7 +1,7 @@
 package satellite
 
 import (
-	"log"
+	"fmt"
 	"math"
 	"strconv"
 	"strings"
@@ -29,7 +29,7 @@ type LookAngles struct {
 }
 
 // Parses a two line element dataset into a Satellite struct
-func ParseTLE(line1, line2, gravconst string) (sat Satellite) {
+func ParseTLE(line1, line2, gravconst string) (sat Satellite, err error) {
 	sat.Line1 = line1
 	sat.Line2 = line2
 
@@ -37,31 +37,84 @@ func ParseTLE(line1, line2, gravconst string) (sat Satellite) {
 	sat.Whichconst = getGravConst(gravconst)
 
 	// LINE 1 BEGIN
-	sat.satnum = parseInt(strings.TrimSpace(line1[2:7]))
-	sat.epochyr = parseInt(line1[18:20])
-	sat.epochdays = parseFloat(line1[20:32])
+	sat.satnum, err = parseInt(strings.TrimSpace(line1[2:7]))
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line1[2:7]: %v", err)
+		return
+	}
+
+	sat.epochyr, err = parseInt(line1[18:20])
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line1[18:20]: %v", err)
+		return
+	}
+	sat.epochdays, err = parseFloat(line1[20:32])
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line1[20:32]: %v", err)
+		return
+	}
 
 	// These three can be negative / positive
-	sat.ndot = parseFloat(strings.Replace(line1[33:43], " ", "", 2))
-	sat.nddot = parseFloat(strings.Replace(line1[44:45]+"."+line1[45:50]+"e"+line1[50:52], " ", "", 2))
-	sat.bstar = parseFloat(strings.Replace(line1[53:54]+"."+line1[54:59]+"e"+line1[59:61], " ", "", 2))
+	sat.ndot, err = parseFloat(strings.Replace(line1[33:43], " ", "", 2))
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line1[33:43]: %v", err)
+		return
+	}
+	sat.nddot, err = parseFloat(strings.Replace(line1[44:45]+"."+line1[45:50]+"e"+line1[50:52], " ", "", 2))
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line1[44:52]: %v", err)
+		return
+	}
+	sat.bstar, err = parseFloat(strings.Replace(line1[53:54]+"."+line1[54:59]+"e"+line1[59:61], " ", "", 2))
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line1[53:61]: %v", err)
+		return
+	}
 	// LINE 1 END
 
 	// LINE 2 BEGIN
-	sat.inclo = parseFloat(strings.Replace(line2[8:16], " ", "", 2))
-	sat.nodeo = parseFloat(strings.Replace(line2[17:25], " ", "", 2))
-	sat.ecco = parseFloat("." + line2[26:33])
-	sat.argpo = parseFloat(strings.Replace(line2[34:42], " ", "", 2))
-	sat.mo = parseFloat(strings.Replace(line2[43:51], " ", "", 2))
-	sat.no = parseFloat(strings.Replace(line2[52:63], " ", "", 2))
+	sat.inclo, err = parseFloat(strings.Replace(line2[8:16], " ", "", 2))
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line2[8:16]: %v", err)
+		return
+	}
+	sat.nodeo, err = parseFloat(strings.Replace(line2[17:25], " ", "", 2))
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line2[17:25]: %v", err)
+		return
+	}
+	sat.ecco, err = parseFloat("." + line2[26:33])
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line2[26:33]: %v", err)
+		return
+	}
+	sat.argpo, err = parseFloat(strings.Replace(line2[34:42], " ", "", 2))
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line2[34:42]: %v", err)
+		return
+	}
+	sat.mo, err = parseFloat(strings.Replace(line2[43:51], " ", "", 2))
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line2[43:51]: %v", err)
+		return
+	}
+	sat.no, err = parseFloat(strings.Replace(line2[52:63], " ", "", 2))
+	if err != nil {
+		err = fmt.Errorf("Error on parsing line2[52:63]: %v", err)
+		return
+	}
 	// LINE 2 END
 	return
 }
 
 // Converts a two line element data set into a Satellite struct and runs sgp4init
-func TLEToSat(line1, line2 string, gravconst string) Satellite {
+func TLEToSat(line1, line2 string, gravconst string) (Satellite, error) {
 	//sat := Satellite{Line1: line1, Line2: line2}
-	sat := ParseTLE(line1, line2, gravconst)
+	sat, err := ParseTLE(line1, line2, gravconst)
+
+	if err != nil {
+		return sat, err
+	}
 
 	opsmode := "i"
 
@@ -87,23 +140,15 @@ func TLEToSat(line1, line2 string, gravconst string) Satellite {
 
 	sgp4init(&opsmode, sat.jdsatepoch+sat.jdsatepochF-2433281.5, &sat)
 
-	return sat
+	return sat, nil
 }
 
 // Parses a string into a float64 value.
-func parseFloat(strIn string) (ret float64) {
-	ret, err := strconv.ParseFloat(strIn, 64)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return ret
+func parseFloat(strIn string) (ret float64, err error) {
+	return strconv.ParseFloat(strIn, 64)
 }
 
 // Parses a string into a int64 value.
-func parseInt(strIn string) (ret int64) {
-	ret, err := strconv.ParseInt(strIn, 10, 0)
-	if err != nil {
-		log.Fatal(err)
-	}
-	return ret
+func parseInt(strIn string) (int64, error) {
+	return strconv.ParseInt(strIn, 10, 0)
 }
