@@ -128,7 +128,7 @@ Struct for holding satellite information during and before propagation
 #### func  ParseTLE
 
 ```go
-func ParseTLE(line1, line2, gravconst string) (sat Satellite, err error)
+func ParseTLE(line1, line2) (sat Satellite, err error)
 ```
 Parses a two line element dataset into a Satellite struct
 
