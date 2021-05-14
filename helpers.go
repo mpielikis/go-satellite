@@ -40,6 +40,15 @@ type JDay struct {
 
 // Parses a two line element dataset into a Satellite struct
 func ParseTLE(line1, line2, gravconst string) (sat Satellite, err error) {
+
+	if len(line1) != 69 {
+		return sat, fmt.Errorf("Line1 length should be 69 but was %d", len(line1))
+	}
+
+	if len(line2) != 69 {
+		return sat, fmt.Errorf("Line2 length should be 69 but was %d", len(line2))
+	}
+
 	sat.Line1 = line1
 	sat.Line2 = line2
 
@@ -180,6 +189,7 @@ func (jd JDay) Single() float64 {
 
 // Parses a string into a float64 value.
 func parseFloat(strIn string) (ret float64, err error) {
+	strIn = strings.Replace(strIn, " ", "0", -1)
 	return strconv.ParseFloat(strIn, 64)
 }
 
