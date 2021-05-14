@@ -1,9 +1,11 @@
 # satellite
-    import "github.com/joshuaferrara/go-satellite"
+a fork of github.com/joshuaferrara/go-satellite
+
+    import "github.com/mpielikis/go-satellite"
 
 ## Intro
 
-[![Build Status](https://travis-ci.org/joshuaferrara/go-satellite.svg?branch=master)](https://travis-ci.org/joshuaferrara/go-satellite) [![GoDoc](https://godoc.org/github.com/joshuaferrara/go-satellite?status.svg)](https://godoc.org/github.com/joshuaferrara/go-satellite)
+![Build Status](https://github.com/mpielikis/go-satellite/actions/workflows/go.yml/badge.svg)
 
 I decided to port the SGP4 library to GoLang as one of my first projects with the language. I've included a test suite to ensure accuracy.
 
