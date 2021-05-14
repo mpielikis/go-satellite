@@ -52,7 +52,6 @@ func ParseTLE(line1, line2, gravconst string) (sat Satellite, err error) {
 	sat.Line1 = line1
 	sat.Line2 = line2
 
-	sat.Error = 0
 	sat.Whichconst, err = getGravConst(gravconst)
 	if err != nil {
 		err = fmt.Errorf("Error on getting gravconst: %v", err)

@@ -36,12 +36,13 @@ var _ = Describe("go-satellite", func() {
 			hour, min, sec := time.Clock()
 
 			jDay := NewJDay(year, int(month), day, hour, min, float64(sec))
-			pos, _ := sat.Propagate(jDay)
+			pos, _, err := sat.Propagate(jDay)
 
 			latLongAlt := NewLatLongAlt(55.6167, 12.6500, 0.005)
 
 			angles := ECIToLookAngles(pos, latLongAlt, jDay.Single(), sat.Whichconst)
 
+			Expect(err).To(BeNil())
 			Expect(angles.El * RAD2DEG).To(Equal(42.06164214709452))
 			Expect(angles.Az * RAD2DEG).To(Equal(181.2902281625632))
 		})
@@ -356,9 +357,10 @@ func propagationTest(testCase PropagationTestCase) {
 			theoPos := Vector3{X: pFloat(theoData[1]), Y: pFloat(theoData[2]), Z: pFloat(theoData[3])}
 			theoVel := Vector3{X: pFloat(theoData[4]), Y: pFloat(theoData[5]), Z: pFloat(theoData[6])}
 
-			expPos, expVel := sgp4(&satrec, pFloat(theoData[0]))
+			expPos, expVel, err := sgp4(&satrec, pFloat(theoData[0]))
 
 			It("Should produce accurate results for time "+theoData[0], func() {
+				Expect(err).To(BeNil())
 				Expect(expPos.X).To(BeNumerically("~", theoPos.X, 0.0001))
 				Expect(expPos.Y).To(BeNumerically("~", theoPos.Y, 0.0001))
 				Expect(expPos.Z).To(BeNumerically("~", theoPos.Z, 0.0001))
