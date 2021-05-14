@@ -39,7 +39,7 @@ type JDay struct {
 }
 
 // Parses a two line element dataset into a Satellite struct
-func ParseTLE(line1, line2, gravconst string) (sat Satellite, err error) {
+func ParseTLE(line1, line2 string) (sat Satellite, err error) {
 
 	if len(line1) != 69 {
 		return sat, fmt.Errorf("Line1 length should be 69 but was %d", len(line1))
@@ -51,12 +51,6 @@ func ParseTLE(line1, line2, gravconst string) (sat Satellite, err error) {
 
 	sat.Line1 = line1
 	sat.Line2 = line2
-
-	sat.Whichconst, err = getGravConst(gravconst)
-	if err != nil {
-		err = fmt.Errorf("Error on getting gravconst: %v", err)
-		return
-	}
 
 	// LINE 1 BEGIN
 	sat.satnum, err = parseInt(strings.TrimSpace(line1[2:7]))
@@ -131,14 +125,16 @@ func ParseTLE(line1, line2, gravconst string) (sat Satellite, err error) {
 
 // Converts a two line element data set into a Satellite struct and runs sgp4init
 func NewSatFromTLE(line1, line2 string, gravconst string) (Satellite, error) {
-	//sat := Satellite{Line1: line1, Line2: line2}
-	sat, err := ParseTLE(line1, line2, gravconst)
+	sat, err := ParseTLE(line1, line2)
 
 	if err != nil {
 		return sat, err
 	}
 
-	opsmode := "i"
+	sat.Gravity, err = getGravConst(gravconst)
+	if err != nil {
+		return sat, fmt.Errorf("Error on getting gravconst: %v", err)
+	}
 
 	sat.no = sat.no / XPDOTP
 	sat.ndot = sat.ndot / (XPDOTP * 1440.0)
@@ -160,7 +156,7 @@ func NewSatFromTLE(line1, line2 string, gravconst string) (Satellite, error) {
 
 	sat.jdsatepoch = NewJDay(int(year), int(mon), int(day), int(hr), int(min), sec)
 
-	_, _, err = sgp4init(&opsmode, sat.jdsatepoch.Subtract(2433281.5), &sat)
+	_, _, err = sat.sgp4init(sat.jdsatepoch.Subtract(2433281.5))
 
 	return sat, err
 }

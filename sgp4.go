@@ -5,8 +5,14 @@ import (
 	"math"
 )
 
+// Calculates position and velocity vectors for given time
+func (sat *Satellite) Propagate(jDay JDay) (position, velocity Vector3, err error) {
+	tsince := jDay.SubtractDay(sat.jdsatepoch)
+	return sat.sgp4(tsince)
+}
+
 // this procedure initializes variables for sgp4.
-func sgp4init(opsmode *string, epoch float64, satrec *Satellite) (position, velocity Vector3, err error) {
+func (satrec *Satellite) sgp4init(epoch float64) (position, velocity Vector3, err error) {
 	var cc1sq, cc2, cc3, coef, coef1, cosio4, eeta, etasq, perige, pinvsq, psisq, qzms24, sfour, temp, temp1, temp2, temp3, temp4, tsi, xhdot1 float64
 
 	// Deep space vars
@@ -15,10 +21,10 @@ func sgp4init(opsmode *string, epoch float64, satrec *Satellite) (position, velo
 	satrec.method = "n"
 	satrec.operationmode = "i"
 
-	radiusearthkm := satrec.Whichconst.radiusearthkm
-	j2 := satrec.Whichconst.j2
-	j4 := satrec.Whichconst.j4
-	j3oj2 := satrec.Whichconst.j3oj2
+	radiusearthkm := satrec.Gravity.radiusearthkm
+	j2 := satrec.Gravity.j2
+	j4 := satrec.Gravity.j4
+	j3oj2 := satrec.Gravity.j3oj2
 
 	ss := 78.0/radiusearthkm + 1.0
 	qzms2ttemp := (120.0 - 78.0) / radiusearthkm
@@ -28,7 +34,7 @@ func sgp4init(opsmode *string, epoch float64, satrec *Satellite) (position, velo
 	satrec.init = "y"
 	satrec.t = 0.0
 
-	var _, no, ao, con41, con42, cosio, cosio2, eccsq, omeosq, posq, rp, rteosq, sinio, gsto = initl(satrec.satnum, satrec.Whichconst, satrec.ecco, epoch, satrec.inclo, satrec.no, satrec.method, satrec.operationmode)
+	var _, no, ao, con41, con42, cosio, cosio2, eccsq, omeosq, posq, rp, rteosq, sinio, gsto = satrec.initl(epoch)
 
 	satrec.no = no
 	satrec.con41 = con41
@@ -191,7 +197,7 @@ func sgp4init(opsmode *string, epoch float64, satrec *Satellite) (position, velo
 			nodem = 0.0
 			mm = 0.0
 
-			dsinitResults := dsinit(satrec.Whichconst, cosim, emsq, satrec.argpo, s1, s2, s3, s4, s5, sinim, ss1, ss2, ss3, ss4, ss5, sz1, sz3, sz11, sz13, sz21, sz23, sz31, sz33, satrec.t, tc, satrec.gsto, satrec.mo, satrec.mdot, satrec.no, satrec.nodeo, satrec.nodedot, xpidot, z1, z3, z11, z13, z21, z23, z31, z33, satrec.ecco, eccsq, em, argpm, inclm, mm, nm, nodem, satrec.irez, satrec.atime, satrec.d2201, satrec.d2211, satrec.d3210, satrec.d3222, satrec.d4410, satrec.d4422, satrec.d5220, satrec.d5232, satrec.d5421, satrec.d5433, satrec.dedt, satrec.didt, satrec.dmdt, satrec.dnodt, satrec.domdt, satrec.del1, satrec.del2, satrec.del3, satrec.xfact, satrec.xlamo, satrec.xli, satrec.xni)
+			dsinitResults := dsinit(satrec.Gravity, cosim, emsq, satrec.argpo, s1, s2, s3, s4, s5, sinim, ss1, ss2, ss3, ss4, ss5, sz1, sz3, sz11, sz13, sz21, sz23, sz31, sz33, satrec.t, tc, satrec.gsto, satrec.mo, satrec.mdot, satrec.no, satrec.nodeo, satrec.nodedot, xpidot, z1, z3, z11, z13, z21, z23, z31, z33, satrec.ecco, eccsq, em, argpm, inclm, mm, nm, nodem, satrec.irez, satrec.atime, satrec.d2201, satrec.d2211, satrec.d3210, satrec.d3222, satrec.d4410, satrec.d4422, satrec.d5220, satrec.d5232, satrec.d5421, satrec.d5433, satrec.dedt, satrec.didt, satrec.dmdt, satrec.dnodt, satrec.domdt, satrec.del1, satrec.del2, satrec.del3, satrec.xfact, satrec.xlamo, satrec.xli, satrec.xni)
 
 			em = dsinitResults.em
 			argpm = dsinitResults.argpm
@@ -237,14 +243,21 @@ func sgp4init(opsmode *string, epoch float64, satrec *Satellite) (position, velo
 		}
 	}
 
-	position, velocity, err = sgp4(satrec, 0.0)
+	position, velocity, err = satrec.sgp4(0.0)
 	satrec.init = "n"
 
 	return
 }
 
 // this procedure initializes the spg4 propagator. all the initialization is consolidated here instead of having multiple loops inside other routines.
-func initl(satn int64, grav GravConst, ecco, epoch, inclo, noIn float64, methodIn, opsmode string) (ainv, no, ao, con41, con42, cosio, cosio2, eccsq, omeosq, posq, rp, rteosq, sinio, gsto float64) {
+func (satrec *Satellite) initl(epoch float64) (ainv, no, ao, con41, con42, cosio, cosio2, eccsq, omeosq, posq, rp, rteosq, sinio, gsto float64) {
+
+	grav := satrec.Gravity
+	ecco := satrec.ecco
+	inclo := satrec.inclo
+	noIn := satrec.no
+	opsmode := satrec.operationmode
+
 	var ak, d1, adel, po float64
 
 	x2o3 := 2.0 / 3.0
@@ -290,26 +303,20 @@ func initl(satn int64, grav GravConst, ecco, epoch, inclo, noIn float64, methodI
 	return
 }
 
-// Calculates position and velocity vectors for given time
-func (sat Satellite) Propagate(jDay JDay) (position, velocity Vector3, err error) {
-	tsince := jDay.SubtractDay(sat.jdsatepoch)
-	return sgp4(&sat, tsince)
-}
-
 // this procedure is the sgp4 prediction model from space command. this is an updated and combined version of sgp4 and sdp4, which were originally published separately in spacetrack report #3. this version follows the methodology from the aiaa paper (2006) describing the history and development of the code.
 // satrec - initialized Satellite struct from sgp4init
 // tsince - time since epoch in minutes
-func sgp4(satrec *Satellite, tsince float64) (position, velocity Vector3, err error) {
+func (satrec *Satellite) sgp4(tsince float64) (position, velocity Vector3, err error) {
 	var am, axnl, aynl, betal, cosim, sinim, cnod, snod, cos2u, sin2u, coseo1, sineo1, cosi, sini, cosip, sinip, cosisq, cossu, sinsu, cosu, sinu, delm, delomg, emsq, ecose, el2, eo1, esine, argpm, argpp, pl, rdotl, rl, rvdot, rvdotl, su, t2, t3, t4, tc, tem5, temp, temp1, temp2, tempa, tempe, templ, u, ux, uy, uz, vx, vy, vz, inclm, mm, nm, nodem, xinc, xincp, xl, xlm, mp, xmdf, xmx, xmy, nodedf, xnode, nodep, mrt float64
 
 	mrt = 0.0
 	temp4 := 1.5e-12
 	x2o3 := 2.0 / 3.0
 
-	radiusearthkm := satrec.Whichconst.radiusearthkm
-	xke := satrec.Whichconst.xke
-	j2 := satrec.Whichconst.j2
-	j3oj2 := satrec.Whichconst.j3oj2
+	radiusearthkm := satrec.Gravity.radiusearthkm
+	xke := satrec.Gravity.xke
+	j2 := satrec.Gravity.j2
+	j3oj2 := satrec.Gravity.j3oj2
 
 	vkmpersec := radiusearthkm * xke / 60.0
 

@@ -7,11 +7,11 @@ type Satellite struct {
 
 	satnum int64
 
-	Whichconst GravConst
+	Gravity GravConst
 
+	jdsatepoch JDay
 	epochyr    int64
 	epochdays  float64
-	jdsatepoch JDay
 
 	ndot  float64
 	nddot float64

@@ -40,7 +40,7 @@ var _ = Describe("go-satellite", func() {
 
 			latLongAlt := NewLatLongAlt(55.6167, 12.6500, 0.005)
 
-			angles := ECIToLookAngles(pos, latLongAlt, jDay.Single(), sat.Whichconst)
+			angles := ECIToLookAngles(pos, latLongAlt, jDay.Single(), sat.Gravity)
 
 			Expect(err).To(BeNil())
 			Expect(angles.El * RAD2DEG).To(Equal(42.06164214709452))
@@ -52,8 +52,7 @@ var _ = Describe("go-satellite", func() {
 		It("should return error on invalid TLE", func() {
 			_, err := ParseTLE(
 				"1 25544U 98067A  08264.51782528 -.00002182  00000-0 -11606-4 0  2927",
-				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537",
-				"wgs84")
+				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537")
 
 			Expect(err).To(Not(BeNil()))
 			Expect(err.Error()).To(Equal("Line1 length should be 69 but was 68"))
@@ -62,8 +61,7 @@ var _ = Describe("go-satellite", func() {
 		It("should not return error on no standard TLE", func() {
 			_, err := ParseTLE(
 				"1 99906U 20081H   21119.14737037  .00000249  00000-0  26335-4 0  9998",
-				"2 99906  97.7877 310.148  001219   90.632  286.991  14.86941389  1571",
-				"wgs84")
+				"2 99906  97.7877 310.148  001219   90.632  286.991  14.86941389  1571")
 
 			Expect(err).To(BeNil())
 		})
@@ -71,8 +69,7 @@ var _ = Describe("go-satellite", func() {
 		It("should return correctly parsed values for given ISS#25544", func() {
 			sat, err := ParseTLE(
 				"1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927",
-				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537",
-				"wgs84")
+				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537")
 
 			Expect(err).To(BeNil())
 			Expect(sat.satnum).To(Equal(int64(25544)))
@@ -93,8 +90,7 @@ var _ = Describe("go-satellite", func() {
 		It("should return correctly parsed values for given object", func() {
 			sat, err := ParseTLE(
 				"1 25544U 98067A   08264.51782528 -.00002182  00000-0 -11606-4 0  2927",
-				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537",
-				"wgs84")
+				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537")
 
 			Expect(err).To(BeNil())
 			Expect(sat.satnum).To(Equal(int64(25544)))
@@ -115,8 +111,7 @@ var _ = Describe("go-satellite", func() {
 		It("should return correctly parsed values for given NOAA 19#33591", func() {
 			sat, err := ParseTLE(
 				"1 33591U 09005A   16163.48990228  .00000077  00000-0  66998-4 0  9990",
-				"2 33591  99.0394 120.2160 0013054 232.8317 127.1662 14.12079902378332",
-				"wgs84")
+				"2 33591  99.0394 120.2160 0013054 232.8317 127.1662 14.12079902378332")
 
 			Expect(err).To(BeNil())
 			Expect(sat.satnum).To(Equal(int64(33591)))
@@ -135,7 +130,9 @@ var _ = Describe("go-satellite", func() {
 		})
 
 		It("should return correctly parsed values for given TITAN 3C#4362", func() {
-			sat, err := ParseTLE("1 04632U 70093B   04031.91070959 -.00000084  00000-0  10000-3 0  9955", "2 04632  11.4628 273.1101 1450506 207.6000 143.9350  1.20231981 44145", "wgs84")
+			sat, err := ParseTLE(
+				"1 04632U 70093B   04031.91070959 -.00000084  00000-0  10000-3 0  9955",
+				"2 04632  11.4628 273.1101 1450506 207.6000 143.9350  1.20231981 44145")
 
 			Expect(err).To(BeNil())
 			Expect(sat.satnum).To(Equal(int64(4632)))
@@ -357,7 +354,7 @@ func propagationTest(testCase PropagationTestCase) {
 			theoPos := Vector3{X: pFloat(theoData[1]), Y: pFloat(theoData[2]), Z: pFloat(theoData[3])}
 			theoVel := Vector3{X: pFloat(theoData[4]), Y: pFloat(theoData[5]), Z: pFloat(theoData[6])}
 
-			expPos, expVel, err := sgp4(&satrec, pFloat(theoData[0]))
+			expPos, expVel, err := satrec.sgp4(pFloat(theoData[0]))
 
 			It("Should produce accurate results for time "+theoData[0], func() {
 				Expect(err).To(BeNil())
