@@ -160,9 +160,9 @@ func NewSatFromTLE(line1, line2 string, gravconst string) (Satellite, error) {
 
 	sat.jdsatepoch = NewJDay(int(year), int(mon), int(day), int(hr), int(min), sec)
 
-	sgp4init(&opsmode, sat.jdsatepoch.Subtract(2433281.5), &sat)
+	_, _, err = sgp4init(&opsmode, sat.jdsatepoch.Subtract(2433281.5), &sat)
 
-	return sat, nil
+	return sat, err
 }
 
 func NewLatLongAlt(latitudeDeg, longitudeDeg, altitudeKm float64) LatLongAlt {
