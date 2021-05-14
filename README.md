@@ -47,7 +47,7 @@ Calc GST given year, month, day, hour, minute and second
 #### func  JDay
 
 ```go
-func JDay(year, mon, day, hr, min int, sec float64) (float64, float64)
+func NewJDay(year, mon, day, hr, min int, sec float64) JDay
 ```
 Calc julian date given year, month, day, hour, minute and second the julian date
 is defined by each elapsed day since noon, jan 1, 4713 bc.
@@ -55,7 +55,7 @@ is defined by each elapsed day since noon, jan 1, 4713 bc.
 #### func  Propagate
 
 ```go
-func Propagate(sat Satellite, jDay, jF float64) (position, velocity Vector3)
+func (sat Satellite) Propagate(jDay JDay) (position, velocity Vector3)
 ```
 Calculates position and velocity vectors for given time
 
@@ -78,6 +78,17 @@ type LatLong struct {
 
 Holds latitude and Longitude in either degrees or radians
 
+#### type LatLongAlt
+
+```go
+type LatLongAlt struct {
+	LatLong LatLong
+	AltitudeKm float64
+}
+```
+
+Holds Latitude, Longitude and Altitude
+
 #### func  LatLongDeg
 
 ```go
@@ -98,7 +109,7 @@ Holds an azimuth, elevation and range
 #### func  ECIToLookAngles
 
 ```go
-func ECIToLookAngles(eciSat Vector3, obsCoords LatLong, obsAlt, jday float64, gravConst GravConst) (lookAngles LookAngles)
+func ECIToLookAngles(eciSat Vector3, obsCoords LatLongAlt, jday JDay, gravConst GravConst) (lookAngles LookAngles)
 ```
 Calculate look angles for given satellite position and observer position obsAlt
 in km Reference: http://celestrak.com/columns/v02n02/
@@ -117,14 +128,14 @@ Struct for holding satellite information during and before propagation
 #### func  ParseTLE
 
 ```go
-func ParseTLE(line1, line2, gravconst string) (sat Satellite)
+func ParseTLE(line1, line2, gravconst string) (sat Satellite, err error)
 ```
 Parses a two line element dataset into a Satellite struct
 
-#### func  TLEToSat
+#### func  NewSatFromTLE
 
 ```go
-func TLEToSat(line1, line2 string, gravconst string) Satellite
+func NewSatFromTLE(line1, line2 string, gravconst string) (Satellite, error)
 ```
 Converts a two line element data set into a Satellite struct and runs sgp4init
 
@@ -149,7 +160,7 @@ coordinates Reference: http://ccar.colorado.edu/ASEN5070/handouts/coordsys.doc
 #### func  LLAToECI
 
 ```go
-func LLAToECI(obsCoords LatLong, alt, jday float64) (eciObs Vector3)
+func LLAToECI(obsCoords LatLongAlt, jday float64) (eciObs Vector3)
 ```
 Convert latitude, longitude and altitude into equivalent Earth Centered
 Intertial coordinates Reference: The 1992 Astronomical Almanac, page K11.

@@ -15,7 +15,7 @@ const XPDOTP float64 = 1440.0 / (2.0 * math.Pi)
 
 // Holds latitude and Longitude in either degrees or radians
 type LatLong struct {
-	LatitudeRad, LongitudeRad float64
+	Latitude, Longitude float64
 }
 
 // Holds latitude and Longitude in either degrees or radians
@@ -160,8 +160,8 @@ func NewSatFromTLE(line1, line2 string, gravconst string) (Satellite, error) {
 func NewLatLongAlt(latitudeDeg, longitudeDeg, altitudeKm float64) LatLongAlt {
 	return LatLongAlt{
 		LatLong: LatLong{
-			LatitudeRad:  DEG2RAD * latitudeDeg,
-			LongitudeRad: DEG2RAD * longitudeDeg},
+			Latitude:  DEG2RAD * latitudeDeg,
+			Longitude: DEG2RAD * longitudeDeg},
 		AltitudeKm: altitudeKm,
 	}
 }
