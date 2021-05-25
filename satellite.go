@@ -5,7 +5,7 @@ type Satellite struct {
 	Line1 string
 	Line2 string
 
-	satnum int64
+	Satnum int64
 
 	Gravity GravConst
 

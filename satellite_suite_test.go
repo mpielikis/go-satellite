@@ -72,7 +72,7 @@ var _ = Describe("go-satellite", func() {
 				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537")
 
 			Expect(err).To(BeNil())
-			Expect(sat.satnum).To(Equal(int64(25544)))
+			Expect(sat.Satnum).To(Equal(int64(25544)))
 			Expect(sat.epochyr).To(Equal(int64(8)))
 			Expect(sat.epochdays).To(Equal(264.51782528))
 			Expect(sat.ndot).To(Equal(-2.182e-05))
@@ -93,7 +93,7 @@ var _ = Describe("go-satellite", func() {
 				"2 25544  51.6416 247.4627 0006703 130.5360 325.0288 15.72125391563537")
 
 			Expect(err).To(BeNil())
-			Expect(sat.satnum).To(Equal(int64(25544)))
+			Expect(sat.Satnum).To(Equal(int64(25544)))
 			Expect(sat.epochyr).To(Equal(int64(8)))
 			Expect(sat.epochdays).To(Equal(264.51782528))
 			Expect(sat.ndot).To(Equal(-2.182e-05))
@@ -114,7 +114,7 @@ var _ = Describe("go-satellite", func() {
 				"2 33591  99.0394 120.2160 0013054 232.8317 127.1662 14.12079902378332")
 
 			Expect(err).To(BeNil())
-			Expect(sat.satnum).To(Equal(int64(33591)))
+			Expect(sat.Satnum).To(Equal(int64(33591)))
 			Expect(sat.epochyr).To(Equal(int64(16)))
 			Expect(sat.epochdays).To(Equal(163.48990228))
 			Expect(sat.ndot).To(Equal(7.7e-7))
@@ -135,7 +135,7 @@ var _ = Describe("go-satellite", func() {
 				"2 04632  11.4628 273.1101 1450506 207.6000 143.9350  1.20231981 44145")
 
 			Expect(err).To(BeNil())
-			Expect(sat.satnum).To(Equal(int64(4632)))
+			Expect(sat.Satnum).To(Equal(int64(4632)))
 			Expect(sat.epochyr).To(Equal(int64(4)))
 			Expect(sat.epochdays).To(Equal(31.91070959))
 			Expect(sat.ndot).To(Equal(-8.4e-7))
@@ -348,7 +348,7 @@ func propagationTest(testCase PropagationTestCase) {
 	}
 
 	for _, line := range lines {
-		Context("Satnum "+strconv.FormatInt(satrec.satnum, 10), func() {
+		Context("Satnum "+strconv.FormatInt(satrec.Satnum, 10), func() {
 			theoData := strings.Split(line, " ")
 
 			theoPos := Vector3{X: pFloat(theoData[1]), Y: pFloat(theoData[2]), Z: pFloat(theoData[3])}

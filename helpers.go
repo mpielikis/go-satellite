@@ -53,7 +53,7 @@ func ParseTLE(line1, line2 string) (sat Satellite, err error) {
 	sat.Line2 = line2
 
 	// LINE 1 BEGIN
-	sat.satnum, err = parseInt(strings.TrimSpace(line1[2:7]))
+	sat.Satnum, err = parseInt(strings.TrimSpace(line1[2:7]))
 	if err != nil {
 		err = fmt.Errorf("Error on parsing line1[2:7]: %v", err)
 		return
